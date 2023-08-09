@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>combineReducers的demo页面</title>
+    <link rel="stylesheet" href="./style.css"/>
+  </head>
+  <body>
+    欢迎来到combineReducers的demo页面
+  </body>
+  <script type="module">
+    import { createStore, combineReducers } from "../src/index.js";
+
+    function todos(state = [], action) {
+      switch (action.type) {
+        case "ADD_TODO":
+          return state.concat([action.text]);
+        default:
+          return state;
+      }
+    }
+
+    function counter(state = 0, action) {
+      switch (action.type) {
+        case "INCREMENT":
+          return state + 1;
+        case "DECREMENT":
+          return state - 1;
+        default:
+          return state;
+      }
+    }
+
+    var reducer = combineReducers({
+      todos,
+      counter,
+    });
+
+    let store = createStore(reducer, { todos: ["Use Redux"] });
+    // 先收集依赖，如果subscribe放到dispatch后面，则没办法触发subscribe
+    store.subscribe((state) => {
+      console.log("state", state, store.getState());
+    });
+
+    store.dispatch({
+      type: "ADD_TODO",
+      text: "Read the docs",
+    });
+
+    console.log(store.getState());
+  </script>
+</html>

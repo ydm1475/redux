@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>applyMiddleWare的demo页面</title>
+    <link rel="stylesheet" href="./style.css"/>
+  </head>
+  <body>
+    欢迎来到applyMiddleWare的demo页面
+  </body>
+  <script type="module">
+    import { createStore, applyMiddleware, compose } from "../src/index.js";
+
+    function todos(state = [], action) {
+      switch (action.type) {
+        case "ADD_TODO":
+          return state.concat([action.text]);
+        default:
+          return state;
+      }
+    }
+
+    function loggerStart(store) {
+      return (next) => (action) => {
+        console.log("will dispatch");
+        //
+        /** 这里的next是loggerEnd中的
+         (action) => {
+            let returnValue = next(action);
+            console.log("dispatch end", action);
+            return returnValue;
+          };
+         * 所以在我们的中间件中必须要执行next(action)， 否则上一个中间件返回的函数不会被执行。
+         * 
+        */
+        let value = next(action);
+        console.log("next end");
+
+        return value;
+      };
+    }
+
+    function loggerEnd(store) {
+      return (next) => (action) => {
+        // 这里的next指的是store.dispatch
+        console.log("dispatch end");
+
+        let returnValue = next(action);
+        console.log("loggerEnd");
+
+        return returnValue;
+      };
+    }
+
+    let store = createStore(
+      todos,
+      ["Use Redux"],
+      applyMiddleware(loggerStart, loggerEnd)
+    );
+
+    store.dispatch({
+      type: "ADD_TODO",
+      text: "Understand the middleware",
+    });
+
+    // 加入中间件之后请先暂停几分钟思考一下打印顺序
+    /**
+     * 打印顺序为will dispatch->dispatch end->loggerEnd->next end
+     * 根据我们前面applyMiddleware的实现以及分析我们可以得出当前的store.dispatch为loggerStart中的
+     * (action) => {
+        console.log("will dispatch");
+        let value = next(action);
+        console.log('next end');
+
+        return value;
+      };下面以startFn代替这个函数。
+      startFn中的next指向的是loggerEnd函数中的(action) => {
+        // 这里的next指的是store.dispatch
+        console.log("dispatch end");
+
+        let returnValue = next(action);
+        console.log("loggerEnd");
+
+        return returnValue;
+      };下面以endFn代替这个函数。endFn中的next是原生的定义在Store类中的dispatch;
+
+      所以触发store.dispatch时，我们会首先打印will dispatch， 遇到next(action)则我们会执行endFn(),
+      打印dispatch end。在endFn遇到next(action)，会去执行原生的store.dispatch, 执行结束后，会继续打印
+      loggerEnd,endFn()函数执行完成后，会继续回到startFn中，打印next end, 直至函数结束完成
+     * 
+    */
+
+    // 经过上述的分析我们知道，如果我们在Store类中的dispatch中加入一下打印信息比如console.log('原生dispatch');
+    // 则打印顺序为will dispatch->dispatch end->原生dispatch->loggerEnd->next end
+    // 这个流程非常像koa中的洋葱模型，不过koa的中间件是支持异步的，而redux是纯函数不支持异步。
+    console.log(store.getState());
+  </script>
+</html>

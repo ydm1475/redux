@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>createStore的demo页面</title>
+    <link rel="stylesheet" href="./style.css"/>
+  </head>
+  <body>
+    欢迎来到createStore的demo页面
+  </body>
+  <script type="module">
+    import { createStore } from "../src/index.js";
+
+    function todos(state = [], action) {
+      switch (action.type) {
+        case "ADD_TODO":
+          return state.concat([action.text]);
+        default:
+          return state;
+      }
+    }
+
+    let store = createStore(todos, ["Use Redux"]);
+    // 先收集依赖，如果subscribe放到dispatch后面，则没办法触发subscribe
+    store.subscribe((state) => {
+      console.log("state", state, store.getState());
+    });
+
+    store.dispatch({
+      type: "ADD_TODO",
+      text: "Read the docs",
+    });
+
+    console.log(store.getState());
+  </script>
+</html>

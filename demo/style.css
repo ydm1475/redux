@@ -1,0 +1,19 @@
+body {
+  text-align: center;
+  font-size: 20px;
+  line-height: 100px;
+  color: black;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% {
+    color: red;
+  }
+  50% {
+    color: green;
+  }
+  100% {
+    color: blue;
+  }
+}

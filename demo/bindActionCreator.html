@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bindActionCreator的demo页面</title>
+    <link rel="stylesheet" href="./style.css"/>
+  </head>
+  <body>
+    欢迎来到bindActionCreator的demo页面
+  </body>
+  <script type="module">
+    import { createStore, bindActionCreator } from "../src/index.js";
+
+    function todos(state = [], action) {
+      switch (action.type) {
+        case "ADD_TODO":
+          return state.concat([action.text]);
+        default:
+          return state;
+      }
+    }
+
+    let store = createStore(todos, ["Use Redux"]);
+    // 先收集依赖，如果subscribe放到dispatch后面，则没办法触发subscribe
+    store.subscribe((state) => {
+      console.log("state", state, store.getState());
+    });
+
+    // 测试第一个参数为函数类型
+    var fn = bindActionCreator(() => {
+      return {
+        type: "ADD_TODO",
+        text: "Read the docs",
+      };
+    }, store.dispatch);
+
+    fn();
+
+    function addTodo(text) {
+      return {
+        type: "ADD_TODO",
+        text,
+      };
+    }
+    var actionsObj = {
+      addTodo,
+    };
+
+    // 测试第二个参数为对象类型
+    bindActionCreator(actionsObj, store.dispatch);
+    actionsObj.addTodo("这是测试bindActionCreator对象类型的");
+
+    console.log(store.getState());
+  </script>
+</html>
